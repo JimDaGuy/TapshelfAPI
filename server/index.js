@@ -24,11 +24,11 @@ if (cluster.isMaster) {
 } else {
   const port = process.env.PORT || process.env.NODE_PORT || 8080;
 
+  // Redis setup
   let redisURL = {
     hostname: 'localhost',
     port: 6379,
   };
-
   let redisPass;
 
   if (process.env.REDISCLOUD_URL) {
@@ -36,6 +36,7 @@ if (cluster.isMaster) {
     redisPass = redisURL.auth.split(':')[1]; // eslint-disable-line prefer-destructuring
   }
 
+  // Express app setup
   const app = express();
 
   app.disable('x-powered-by');
