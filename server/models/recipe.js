@@ -1,18 +1,17 @@
 module.exports = (sequelize, type) => {
-  const User = sequelize.define('user', {
+  const Recipe = sequelize.define('recipe', {
     id: {
       type: type.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    username: {
+    name: {
       type: type.STRING,
-      unique: true,
     },
-    password: type.STRING,
+    description: {
+      type: type.STRING,
+    },
   });
 
-  // Associations here
-
-  return User;
+  return Recipe;
 };

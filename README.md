@@ -6,7 +6,7 @@ Made with Node.
 
 Create a file called .env
 ```
-jwtSecret=CookieCat
+JWT_SECRET=CookieCat
 NODE_PORT=8080
 REDIS_SECRET=RedisCookieCat
 DB_HOST=localhost
