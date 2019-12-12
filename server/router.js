@@ -9,7 +9,10 @@ const router = (app) => {
   app.post('/removeDrink', controllers.Drink.deleteDrink);
   // Recipes
   app.post('/createRecipe', controllers.Recipe.createUserRecipe);
-  app.get('/getRecipes', controllers.Recipe.getUserRecipes);
+  app.get('/getMyRecipes', controllers.Recipe.getUserRecipes);
+  app.get('/getRecipesByName', controllers.Recipe.getRecipesByName);
+  app.get('/getStarredRecipes', controllers.Recipe.getStarredRecipes);
+  app.post('/starRecipe', controllers.Recipe.starRecipe);
 
   app.post('/test', controllers.User.test);
   app.get('*', (req, res) => {

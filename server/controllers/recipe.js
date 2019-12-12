@@ -1,7 +1,63 @@
+const { Op } = require('sequelize');
+
 const helper = require('./helper');
 const {
   Recipe, Drink, UserRecipe, UserStarredRecipe, RecipeDrink,
 } = require('../sequelize');
+
+const returnRecipes = (recipeIDs, req, res) => {
+  // Get recipes
+  Recipe.findAll({
+    where: {
+      id: recipeIDs,
+    },
+    raw: true,
+  }).then((recipes) => {
+    const promiseList = [];
+
+    // If I get more errors I may have to set up a promise for each recipe but I dont care right now.
+
+    // Map each recipe to a recipe with its associated drinks
+    const recipesWithDrinks = recipes;
+
+    for (let i = 0; i < recipes.length; i += 1) {
+      // Create a promise and add it to the promise list
+      const currentPromise = new Promise((resolve, reject) => {
+        const currentRecipe = recipes[i];
+        const currentRecipeID = currentRecipe.id;
+
+        // Grab drink ID objects for current recipe
+        RecipeDrink.findAll({
+          where: {
+            recipeID: currentRecipeID,
+          },
+          attributes: ['drinkID'],
+          raw: true,
+        }).then((recipeDrinkIDs) => {
+          // Get array of drinkIDs
+          const drinkIDs = recipeDrinkIDs.map((recipeDrinkID) => recipeDrinkID.drinkID);
+
+          // Get array of drinks
+          Drink.findAll({
+            where: {
+              id: drinkIDs,
+            },
+            raw: true,
+          }).then((drinks) => {
+            // Set drinks of recipes and resolve the promise
+            recipesWithDrinks[i].drinks = drinks;
+            resolve();
+          });
+        });
+      });
+
+      promiseList.push(currentPromise);
+    }
+
+    // Return recipes once
+    Promise.all(promiseList).then(() => res.status(200).json({ message: 'Successfully retrieved the recipes.', recipes: recipesWithDrinks }));
+  });
+};
 
 const createUserRecipe = async (req, res) => {
   helper.checkToken(req, res, (payload) => {
@@ -57,61 +113,87 @@ const getUserRecipes = async (req, res) => {
     // Get array of recipeIDs
     const recipeIDs = userRecipeIDs.map((userRecipeID) => userRecipeID.recipeID);
 
-    // Get recipes
-    Recipe.findAll({
-      where: {
-        id: recipeIDs,
+    returnRecipes(recipeIDs, req, res);
+  });
+};
+
+const getRecipesByName = async (req, res) => {
+  const recipeName = `${req.body.name || ''}`;
+
+  // Check if name was sent
+  if (!recipeName) {
+    return res.status(400).json({ error: 'name is required' });
+  }
+
+  // Grab objects with recipe IDs in them
+  const nameRecipeIDs = await Recipe.findAll({
+    where: {
+      name: {
+        // Searches for recipes containing the searched name
+        [Op.like]: `%${recipeName}%`,
       },
-      raw: true,
-    }).then((recipes) => {
-      const promiseList = [];
+    },
+    attributes: ['id'],
+    raw: true,
+  });
 
-      // If I get more errors I may have to set up a promise for each recipe but I dont care right now.
+  // Get array of recipeIDs
+  const recipeIDs = nameRecipeIDs.map((nameRecipeID) => nameRecipeID.id);
 
-      // Map each recipe to a recipe with its associated drinks
-      const recipesWithDrinks = recipes;
+  returnRecipes(recipeIDs, req, res);
+};
 
-      for (let i = 0; i < recipes.length; i += 1) {
-        // Create a promise and add it to the promise list
-        const currentPromise = new Promise((resolve, reject) => {
-          const currentRecipe = recipes[i];
-          const currentRecipeID = currentRecipe.id;
+const starRecipe = (req, res) => {
+  helper.checkToken(req, res, async (payload) => {
+    const { userID } = payload;
+    const recipeID = `${req.body.recipeID || ''}`;
 
-          // Grab drink ID objects for current recipe
-          RecipeDrink.findAll({
-            where: {
-              recipeID: currentRecipeID,
-            },
-            attributes: ['drinkID'],
-            raw: true,
-          }).then((recipeDrinkIDs) => {
-            // Get array of drinkIDs
-            const drinkIDs = recipeDrinkIDs.map((recipeDrinkID) => recipeDrinkID.drinkID);
+    // Check if recipeID was sent
+    if (!recipeID) {
+      return res.status(400).json({ error: 'recipeID is required' });
+    }
 
-            // Get array of drinks
-            Drink.findAll({
-              where: {
-                id: drinkIDs,
-              },
-              raw: true,
-            }).then((drinks) => {
-              // Set drinks of recipes and resolve the promise
-              recipesWithDrinks[i].drinks = drinks;
-              resolve();
-            });
-          });
-        });
-
-        promiseList.push(currentPromise);
-      }
-
-      // Return recipes once
-      Promise.all(promiseList).then(() => res.status(200).json({ message: 'Successfully retrieved the user\'s recipes.', recipes: recipesWithDrinks }));
+    // Check if recipe is already starred
+    const existingStars = await UserStarredRecipe.findAll({
+      where: { userID, recipeID },
     });
+
+    // Star if it doesnt already exist, unstar if not
+    if (existingStars.length > 0) {
+      UserStarredRecipe.destroy({
+        where: { userID, recipeID },
+      }).then(() => res.status(200).json({ message: 'Succesfully unstarred the recipe' }))
+        .catch((err) => res.status(500).json({ error: `Unable to unstar the recipe. Error: ${err}` }));
+    } else {
+      UserStarredRecipe.create({ userID, recipeID })
+        .then(() => res.status(200).json({ message: 'Succesfully starred the recipe' }))
+        .catch((err2) => res.status(500).json({ error: `Unable to star the recipe. Error: ${err2}` }));
+    }
+  });
+};
+
+const getStarredRecipes = async (req, res) => {
+  helper.checkToken(req, res, async (payload) => {
+    const { userID } = payload;
+
+    // Grab objects with recipeIDs in them of starred recipes
+    const starredRecipeIDs = await UserStarredRecipe.findAll({
+      where: { userID },
+      attributes: ['recipeID'],
+      raw: true,
+    });
+
+    // Get array of recipeIDs
+    const recipeIDs = starredRecipeIDs.map((starredRecipeID) => starredRecipeID.recipeID);
+
+    returnRecipes(recipeIDs, req, res);
   });
 };
 
 module.exports = {
   createUserRecipe,
   getUserRecipes,
+  getRecipesByName,
+  getStarredRecipes,
+  starRecipe,
 };

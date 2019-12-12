@@ -67,9 +67,7 @@ const deleteDrink = async (req, res) => {
     where: {
       id: drinkID,
     },
-  });
-
-  return res.status(200).json({ message: `Succesfully removed drink with ID: ${drinkID}.` });
+  }).then(() => res.status(200).json({ message: `Succesfully removed drink with ID: ${drinkID}.` }));
 };
 
 module.exports = {
