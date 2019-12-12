@@ -14,6 +14,7 @@ const router = (app) => {
   app.get('/getStarredRecipes', controllers.Recipe.getStarredRecipes);
   app.get('/checkStarred', controllers.Recipe.checkStarred);
   app.post('/starRecipe', controllers.Recipe.starRecipe);
+  app.post('/deleteRecipe', controllers.Recipe.deleteRecipe);
 
   app.post('/test', controllers.User.test);
   app.get('*', (req, res) => {

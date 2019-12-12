@@ -209,15 +209,32 @@ const checkStarred = async (req, res) => {
 
     if (starredRecipes.length > 0) {
       return res.status(200).json({ message: 'true' });
-    } 
+    }
 
     return res.status(200).json({ message: 'false' });
   });
 };
 
+// Temporary route for removing recipes, not even gonna check they belong to the user
+const deleteRecipe = async (req, res) => {
+  const recipeID = `${req.body.recipeID || ''}`;
+
+  // Check if recipeID was sent
+  if (!recipeID) {
+    return res.status(400).json({ error: 'recipeID is required' });
+  }
+
+  Recipe.destroy({
+    where: {
+      id: recipeID,
+    },
+  }).then(() => res.status(200).json({ message: `Successfully removed recipe with ID: ${recipeID}` }));
+};
+
 module.exports = {
   checkStarred,
   createUserRecipe,
+  deleteRecipe,
   getUserRecipes,
   getRecipesByName,
   getStarredRecipes,
