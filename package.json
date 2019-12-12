@@ -4,16 +4,17 @@
   "description": "",
   "main": "server/index.js",
   "scripts": {
-    "start": "node server/index.js",
+    "start": "npx nodemon --exec babel-node server/index.js",
     "sequelize-skeleton": "cd ./server && npx sequelize init:models && npx sequelize init:config",
     "init-db": "cd 'C:/Program Files/MySQL/MySQL Server 5.7/bin' && echo 'DROP DATABASE IF EXISTS api_node_demo; CREATE DATABASE api_node_demo CHARACTER SET utf8 COLLATE utf8_general_ci' | ./mysql -u root && cd -",
-    "dev": "npx nodemon --exec babel-node server/index.js",
+    "dev": "node server/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "James DiGrazia",
   "license": "MIT",
   "dependencies": {
+    "babel-cli": "6.26.0",
     "bcrypt": "3.0.7",
     "body-parser": "1.19.0",
     "compression": "1.7.4",
@@ -26,10 +27,10 @@
     "jsonwebtoken": "8.5.1",
     "mongoose": "5.7.12",
     "mysql2": "2.0.1",
+    "nodemon": "2.0.1",
     "sequelize": "5.21.2"
   },
   "devDependencies": {
-    "babel-cli": "6.26.0",
     "babel-preset-env": "1.7.0",
     "babel-preset-stage-3": "6.24.1",
     "eslint": "6.7.1",
@@ -38,7 +39,6 @@
     "faker": "4.1.0",
     "lodash.random": "3.2.0",
     "lodash.times": "4.3.2",
-    "nodemon": "2.0.1",
     "sequelize-cli": "5.5.1"
   }
 }
