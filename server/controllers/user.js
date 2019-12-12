@@ -15,7 +15,7 @@ const createUser = async (req, res) => {
 
   // Check if username and password were sent
   if (!username || !password) {
-    return res.status(400).json({ error: 'Username and password are required' });
+    return res.status(400).json({ error: 'username and password are required' });
   }
 
   // Check if user already exists
