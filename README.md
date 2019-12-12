@@ -10,6 +10,7 @@ JWT_SECRET=CookieCat
 NODE_PORT=8080
 REDIS_SECRET=RedisCookieCat
 DB_HOST=localhost
+DB_NAME=MyDatabaseName
 DB_USERNAME=username
 DB_PASSWORD=password
 ```

@@ -14,16 +14,24 @@ const UserStarredRecipeModel = require('./models/userstarredrecipe');
 // Database connection variables
 require('dotenv').config();
 
-const host = process.env.DB_HOST || 'localhost';
-const dbName = process.env.DB_NAME || 'database';
-const dbUsername = process.env.DB_USERNAME || 'username';
-const dbPassword = process.env.DB_PASSWORD || 'password';
+let sequelize;
+
+const connectionString = process.env.CLEARDB_DATABASE_URL || '';
 
 // Create DB connection
-const sequelize = new Sequelize(dbName, dbUsername, dbPassword, {
-  host,
-  dialect: 'mysql',
-});
+if (!connectionString || connectionString === '') {
+  const host = process.env.DB_HOST || 'localhost';
+  const dbName = process.env.DB_NAME || 'database';
+  const dbUsername = process.env.DB_USERNAME || 'username';
+  const dbPassword = process.env.DB_PASSWORD || 'password';
+
+  sequelize = new Sequelize(dbName, dbUsername, dbPassword, {
+    host,
+    dialect: 'mysql',
+  });
+} else {
+  sequelize = new Sequelize(connectionString);
+}
 
 sequelize
   .authenticate()
