@@ -190,7 +190,33 @@ const getStarredRecipes = async (req, res) => {
   });
 };
 
+// Temporary route for checking if a recipe is starred
+const checkStarred = async (req, res) => {
+  helper.checkToken(req, res, async (payload) => {
+    const { userID } = payload;
+    const recipeID = `${req.body.recipeID || ''}`;
+
+    // Check if recipeID was sent
+    if (!recipeID) {
+      return res.status(400).json({ error: 'recipeID is required' });
+    }
+
+    // Grab objects with recipeIDs in them of starred recipes
+    const starredRecipes = await UserStarredRecipe.findAll({
+      where: { userID, recipeID },
+      raw: true,
+    });
+
+    if (starredRecipes.length > 0) {
+      return res.status(200).json({ message: 'true' });
+    } 
+
+    return res.status(200).json({ message: 'false' });
+  });
+};
+
 module.exports = {
+  checkStarred,
   createUserRecipe,
   getUserRecipes,
   getRecipesByName,

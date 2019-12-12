@@ -76,9 +76,6 @@ const authenticateUser = async (req, res) => {
     return res.status(400).json({ error: 'Bad username or password' });
   }
 
-  // Check if user gets found
-  console.dir(user);
-
   const passwordHash = user.password;
 
   bcrypt.compare(password, passwordHash, (err, success) => {

@@ -12,6 +12,7 @@ const router = (app) => {
   app.get('/getMyRecipes', controllers.Recipe.getUserRecipes);
   app.get('/getRecipesByName', controllers.Recipe.getRecipesByName);
   app.get('/getStarredRecipes', controllers.Recipe.getStarredRecipes);
+  app.get('/checkStarred', controllers.Recipe.checkStarred);
   app.post('/starRecipe', controllers.Recipe.starRecipe);
 
   app.post('/test', controllers.User.test);
