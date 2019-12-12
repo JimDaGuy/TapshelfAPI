@@ -58,47 +58,56 @@ const getUserRecipes = async (req, res) => {
     const recipeIDs = userRecipeIDs.map((userRecipeID) => userRecipeID.recipeID);
 
     // Get recipes
-    const recipes = Recipe.findAll({
+    Recipe.findAll({
       where: {
         id: recipeIDs,
       },
       raw: true,
+    }).then((recipes) => {
+      const promiseList = [];
+
+      // If I get more errors I may have to set up a promise for each recipe but I dont care right now.
+
+      // Map each recipe to a recipe with its associated drinks
+      const recipesWithDrinks = recipes;
+
+      for (let i = 0; i < recipes.length; i += 1) {
+        // Create a promise and add it to the promise list
+        const currentPromise = new Promise((resolve, reject) => {
+          const currentRecipe = recipes[i];
+          const currentRecipeID = currentRecipe.id;
+
+          // Grab drink ID objects for current recipe
+          RecipeDrink.findAll({
+            where: {
+              recipeID: currentRecipeID,
+            },
+            attributes: ['drinkID'],
+            raw: true,
+          }).then((recipeDrinkIDs) => {
+            // Get array of drinkIDs
+            const drinkIDs = recipeDrinkIDs.map((recipeDrinkID) => recipeDrinkID.drinkID);
+
+            // Get array of drinks
+            Drink.findAll({
+              where: {
+                id: drinkIDs,
+              },
+              raw: true,
+            }).then((drinks) => {
+              // Set drinks of recipes and resolve the promise
+              recipesWithDrinks[i].drinks = drinks;
+              resolve();
+            });
+          });
+        });
+
+        promiseList.push(currentPromise);
+      }
+
+      // Return recipes once
+      Promise.all(promiseList).then(() => res.status(200).json({ message: 'Successfully retrieved the user\'s recipes.', recipes: recipesWithDrinks }));
     });
-
-    const recipesWithDrinks = recipes.map(async (recipe) => {
-      const currentRecipe = recipe;
-      const currentRecipeID = currentRecipe.id;
-
-      // Grab drink ID objects for current recipe
-      const recipeDrinkIDs = await RecipeDrink.findAll({
-        where: {
-          recipeID: currentRecipeID,
-        },
-        attributes: ['drinkID'],
-        raw: true,
-      });
-
-      // Get array of drinkIDs
-      const drinkIDs = recipeDrinkIDs.map((recipeDrinkID) => recipeDrinkID.drinkID);
-
-      // Get array of drinks
-      const drinks = await Drink.findAll({
-        where: {
-          id: drinkIDs,
-        },
-        raw: true,
-      });
-
-      // Add the drinks to the current recipe
-      currentRecipe.drinks = drinks;
-      return currentRecipe;
-    });
-
-    console.dir(recipesWithDrinks);
-    const test = recipesWithDrinks;
-    console.dir(test);
-
-    return res.status(200).json({ message: 'Successfully retrieved the user\'s recipes.', recipes: test });
   });
 };
 
